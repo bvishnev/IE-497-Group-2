@@ -59,5 +59,38 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 **Source:** Nasdaq, Inc. *Nasdaq TotalView-ITCH Specification*. (PDF)  
 Available at: https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHSpecification.pdf
 
+## Implementation Details
+The design was implemented in SystemVerilog (source file included). The module takes in the data byte stream, start and end message flags, a valid byte flag, along with a clock and asynchronous reset signal. Each field of the message is assigned to its own output register; unused fields are assigned to zero. Finally, there is another output that is raised for one cycle at the end of a message to indicate that a valid message has been processed. The inputs and outputs are summarized in the tables below.
 
+### Inputs
+
+| Name       | Size (bits) | Description |
+|------------|-------------|-------------|
+| clk       | 1           | Clock signal |
+| rst        | 1           | Reset signal |
+| start_msg  | 1           | Indicates the start of a new message |
+| end_msg    | 1           | Indicates the end of a message |
+| message    | 8           | Byte-wise serial message data |
+| valid      | 1           | Indicates whether the current message byte is valid |
+
+### Outputs
+
+| Name          | Size (bits) | Messages Used For | Description |
+|---------------|-------------|-------------------|-------------|
+| valid_msg     | 1           | A, E, X, D        | Indicates whether the entire message is valid |
+| msg_type      | 8           | A, E, X, D        | Type of market action encoded in the message |
+| stock_locate  | 16          | A, E, X, D        | Locate code identifying the security |
+| tracking_no   | 16          | A, E, X, D        | Nasdaq internal tracking number |
+| timestamp     | 48          | A, E, X, D        | Nanoseconds since midnight |
+| order_ref_no  | 64          | A, E, X, D        | Unique reference number assigned to the order |
+| shares        | 32          | A, E, X           | Total number of shares associated with the order |
+| buy_sell      | 8           | A                 | Type of order (“B”=Buy, “S”=Sell) |
+| stock         | 64          | A                 | Stock symbol, right padded with spaces |
+| price         | 32          | A                 | Display price of the new order |
+| match_no      | 64          | E                 | Day-unique Match Number for this execution |
+
+The implementation also utilizes two internal signals, `byte_idx` and `message_invalid`. `byte_idx` is a 6-bit counter used to keep track of the index of the current byte, which is then used to determine which field it belongs to. `byte_idx` is incremented on every clock edge, and reset with the `start_msg` signal. `message_invalid` is a 1-bit signal that keeps track of whether any bytes so far have been invalid, which is used to make the ultimate determination of whether the overall message was valid.
+
+## Next Steps
+While the implementation of the parser is largely complete, it is still a draft, and has not yet been rigorously tested and validated. The next step would be to write a testbench that tests the design with several valid messages of each type, as well as a variety of invalid cases (e.g. `valid` signal equal to `0` for one or more bytes, improper message length, etc.) Longer term, future work could include implementation and testing on a physical FPGA board, or designing an order book that uses the outputs of the parser as inputs.
 
