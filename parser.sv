@@ -1,23 +1,5 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 11/30/2025 07:44:53 PM
-// Design Name: 
-// Module Name: parser
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+
 
 module parser (
  input logic clk,
@@ -39,7 +21,7 @@ module parser (
  output reg [31:0] shares, // The total number of shares associated with the order
  
  // Add Order (A) only
- output reg [7:0] buy_sell, // The type of order being added. “B” = Buy Order. “S” = SellOrder
+ output reg [7:0] buy_sell, // The type of order being added. â€œBâ€ = Buy Order. â€œSâ€ = SellOrder
  output reg [63:0] stock, // Stock symbol, right padded with spaces
  output reg [31:0] price, // The display price of the new order
  
