@@ -31,10 +31,10 @@ module parser (
  output reg [63:0] match_no, // The Nasdaq generated day unique Match Number of this execution
 
  // Order Replace Message (U) only
- output reg[63:0] new_order_ref_no  // The unique reference number assigned to the new order at the time of receipt
+ output reg[63:0] new_order_ref_no,  // The unique reference number assigned to the new order at the time of receipt
 
  // Add Order with MPID Attribution Message (F) only
- output reg[31:0] attribution  //Nasdaq Market participant identifier associated with the entered order
+ output reg[31:0] attribution  // Nasdaq Market participant identifier associated with the entered order
  
 ); 
  
