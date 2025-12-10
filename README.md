@@ -25,6 +25,20 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 | Stock                | 24     | 8      | Alpha   | Stock symbol, right-padded with spaces                                                  |
 | Price                | 32     | 4      | Price   | Display price of the new order                                                          |
 
+### Add Order – MPID Attribution ("F")
+| Name                 | Offset | Length | Value   | Notes                                                                                   |
+|----------------------|--------|--------|---------|-----------------------------------------------------------------------------------------|
+| Message Type         | 0      | 1      | “F”     | Add Order – MPID Attribution Message                                                 |
+| Stock Locate         | 1      | 2      | Integer | Locate code identifying the security                                                    |
+| Tracking Number      | 3      | 2      | Integer | Nasdaq internal tracking number                                                         |
+| Timestamp            | 5      | 6      | Integer | Nanoseconds since midnight                                                              |
+| Order Reference No.  | 11     | 8      | Integer | Unique reference number assigned to the new order at the time of receipt                |
+| Buy/Sell Indicator   | 19     | 1      | Alpha   | “B” = Buy Order, “S” = Sell Order                                                       |
+| Shares               | 20     | 4      | Integer | Total shares for the order being added                                                  |
+| Stock                | 24     | 8      | Alpha   | Stock symbol, right-padded with spaces                                                  |
+| Price                | 32     | 4      | Price   | Display price of the new order                                                          |
+| Attribution          | 36     | 4      | Alpha   | Nasdaq Market participant identifier associated with the entered order                  |
+
 ### Order Executed Message ("E")
 
 | Name                 | Offset | Length | Value   | Notes                                                                                    |
@@ -55,6 +69,8 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 | Tracking Number      | 3      | 2      | Integer | Nasdaq internal tracking number                                            |
 | Timestamp            | 5      | 6      | Integer | Nanoseconds since midnight                                                 |
 | Order Reference No.  | 11     | 8      | Integer | The reference number of the order being canceled                           |
+
+
 
 **Source:** Nasdaq, Inc. *Nasdaq TotalView-ITCH Specification*. (PDF)  
 Available at: https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHSpecification.pdf
