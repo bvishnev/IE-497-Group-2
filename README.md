@@ -36,7 +36,7 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 | Buy/Sell Indicator   | 19     | 1      | Alpha   | “B” = Buy Order, “S” = Sell Order                                                       |
 | Shares               | 20     | 4      | Integer | Total shares for the order being added                                                  |
 | Stock                | 24     | 8      | Alpha   | Stock symbol, right-padded with spaces                                                  |
-| Price                | 32     | 4      | Price (4)  | Display price of the new order                                                          |
+| Price                | 32     | 4      | Price (4)  | Display price of the new order                                                       |
 | Attribution          | 36     | 4      | Alpha   | Nasdaq Market participant identifier associated with the entered order                  |
 
 ### Order Executed Message ("E")
@@ -49,7 +49,7 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 | Timestamp            | 5      | 6      | Integer | Nanoseconds since midnight                                                               |
 | Order Reference No.  | 11     | 8      | Integer | Unique reference number assigned to the new order at time of receipt                     |
 | Executed Shares      | 19     | 4      | Integer | Number of shares executed                                                                |
-| Match Number         | 23     | 8      | Integer | Nasdaq-generated day-unique Match Number for this execution (also used in Trade Break)   |
+| Match Number         | 23     | 8      | Integer | Nasdaq-generated day-unique Match Number for this execution                              |
 
 ### Order Cancel Message ("X")
 | Name                 | Offset | Length | Value   | Notes                                                                      |
