@@ -39,6 +39,7 @@ module parser (
 ); 
  
  reg [5:0] byte_idx; // stores the index of the current byte
+ reg count_en; // determines whether byte_idx should be incremented on the current cycle
  reg message_invalid; // keeps track of whether an invalid byte has been encountered yet
  
  always_ff @(posedge clk or posedge rst) begin 
@@ -59,14 +60,22 @@ module parser (
         byte_idx <= 6'd0;
         new_order_ref_no <= 64'd0;
         attribution <= 32'd0; 
+        count_en <= 1'b0;
     end else begin
         
         valid_msg <= 1'b0; // Later overwritten if final byte and overall message is valid
     
         if(start_msg && valid) begin
             byte_idx <= 6'd1; // Stores 1 in the counter, which will be the index of the next byte
+            count_en <= 1'b1; // enable counter for next cycle
             msg_type <= message;
-            message_invalid <= 1'b0;
+            if(message != 8'h41 && message != 8'h44 && message != 8'h45 && message != 8'h46 && message != 8'h55 && message != 8'h58) begin
+                message_invalid <= 1'b1;
+                byte_idx <= 6'b111111; // Put index out of range so data is not overwritten by in-between message bytes
+                count_en <= 1'b0;
+            end else begin
+                message_invalid <= 1'b0;
+            end
             
             // Clear any lingering values from previous messages
             stock_locate <= 16'd0;
@@ -80,9 +89,12 @@ module parser (
             match_no <= 64'd0;
             new_order_ref_no <= 64'd0;
             attribution <= 32'd0;
-        end else if (valid && !end_msg) begin // If current byte valid and not start or end, increment byte_idx
+        end else if (count_en) begin // Increment byte_idx if count is enabled
             byte_idx <= byte_idx + 1;
-        end else if(!valid) begin
+        end
+        if(!valid) begin
+            byte_idx <= 6'b111111; // Put index out of range so data is not overwritten by in-between message bytes
+            count_en <= 1'b0;
             message_invalid <= 1'b1;
         end
         
@@ -117,6 +129,7 @@ module parser (
                         match_no <= 64'd0;
                         new_order_ref_no <= 64'd0;
                         attribution <= 32'd0;
+                        count_en <= 1'b0;
                     end
                     if(msg_type == 8'h58) begin
                         // Set sentinel values for unused output signals in X-type message
@@ -131,7 +144,11 @@ module parser (
                             6'd19: shares[31:24] <= message;
                             6'd20: shares[23:16] <= message;
                             6'd21: shares[15:8] <= message;
-                            6'd22: shares[7:0] <= message;
+                            6'd22: begin 
+                                   shares[7:0] <= message;
+                                   count_en <= 1'b0;
+                            end
+                                        
                         endcase
                     end
                     if(msg_type == 8'h45) begin
@@ -154,7 +171,10 @@ module parser (
                             6'd27: match_no[31:24] <= message;
                             6'd28: match_no[23:16] <= message;
                             6'd29: match_no[15:8] <= message;
-                            6'd30: match_no[7:0] <= message;
+                            6'd30: begin
+                                   match_no[7:0] <= message;
+                                   count_en <= 1'b0;
+                            end
                         endcase
                     end
                     if(msg_type == 8'h41) begin
@@ -180,7 +200,10 @@ module parser (
                             6'd32: price[31:24] <= message;
                             6'd33: price[23:16] <= message;
                             6'd34: price[15:8] <= message;
-                            6'd35: price[7:0] <= message;
+                            6'd35: begin
+                                   price[7:0] <= message;
+                                   count_en <= 1'b0;
+                            end
                         endcase
                     end
                     if(msg_type == 8'h55) begin
@@ -206,7 +229,10 @@ module parser (
                             6'd31: price[31:24] <= message;
                             6'd32: price[23:16] <= message;
                             6'd33: price[15:8] <= message;
-                            6'd34: price[7:0] <= message;
+                            6'd34: begin
+                                   price[7:0] <= message;
+                                   count_en <= 1'b0;
+                            end
                         endcase
                     end
                     if(msg_type == 8'h46) begin
@@ -235,7 +261,10 @@ module parser (
                             6'd36: attribution[31:24] <= message; 
                             6'd37: attribution[23:16] <= message; 
                             6'd38: attribution[15:8] <= message; 
-                            6'd39: attribution[7:0] <= message; 
+                            6'd39: begin
+                                   attribution[7:0] <= message; 
+                                   count_en <= 1'b0;
+                            end
                         endcase
                     end
                 end
@@ -245,9 +274,11 @@ module parser (
         // If the overall message is valid and this is the last byte, raise valid_msg for one cycle
         if(valid && !message_invalid && end_msg) begin
             valid_msg <= 1'b1;
+            count_en <= 1'b0;
+            byte_idx <= 6'b111111; // Put index out of range so data is not overwritten by in-between message bytes
         end
     end
     
- end
+  end
 
 endmodule
