@@ -126,6 +126,14 @@ The target hardware for this parser is the AMD Alveo™ U55C High Performance Co
 ## Testing 
 To test that `parser.sv` performs the desired functions as intended, we created a testbench file called `parser_tb.sv`, which executes several test cases which represent different types of valid and invalid encodings across all supported market actions. We validated the outputs of the parser by inspecting the waveform viewer and the console printout. The parser correctly writes all of the data to the corresponding registers in valid messages, and stops writing to registers immediately upon recieving an invalid byte. The parser also correctly ignores any data sent outside of the start and end delimiters, which prevents writing garbage data to registers. 
 
+Below is an image of the waveform diagram for a valid "A" message:
+![In Between Messages](./Simulation%20Waveforms/Valid%20A%20Message.png)
+
+Below is an image of the waveform diagram when garbage data is sent between start and end delimiters:
+![In Between Messages](./Simulation%20Waveforms/In%20Between%20Messages.png)
+
+
+
 ## Next Steps
 While the implementation of the parser is largely complete, it has still yet to be tested with real market data rather than the arbritary placeholder values in the testbench. The next steps would be to build out the parser to support the full breadth of possible market actions, and then use this complete parser on a live or historical market data stream. Future work would also include implementation and testing on the physical U55C board as well as designing an order book that uses the outputs of the parser as inputs to support book-building functionalities.
 
