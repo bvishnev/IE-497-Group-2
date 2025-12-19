@@ -126,12 +126,22 @@ The target hardware for this parser is the AMD Alveo™ U55C High Performance Co
 ## Testing 
 To test that `parser.sv` performs the desired functions as intended, we created a testbench file called `parser_tb.sv`, which executes several test cases which represent different types of valid and invalid encodings across all supported market actions. We validated the outputs of the parser by inspecting the waveform viewer and the console printout. The parser correctly writes all of the data to the corresponding registers in valid messages, and stops writing to registers immediately upon recieving an invalid byte. The parser also correctly ignores any data sent outside of the start and end delimiters, which prevents writing garbage data to registers. 
 
-Below is an image of the waveform diagram for a valid "A" message:
-![In Between Messages](./Simulation%20Waveforms/Valid%20A%20Message.png)
+Waveform diagrams for select test cases are shown below. The rest can be found in the `Simulation Waveforms` folder. 
 
-Below is an image of the waveform diagram when garbage data is sent between start and end delimiters:
-![In Between Messages](./Simulation%20Waveforms/In%20Between%20Messages.png)
+### Valid "A" message
+<p align="center">
+  <img src="./Simulation%20Waveforms/Valid%20A%20Message.png" width="1000">
+</p>
 
+### Invalid "A" message
+<p align="center">
+  <img src="./Simulation%20Waveforms/Invalid%20A%20Message.png" width="1000">
+</p>
+
+### In Between Messages
+<p align="center">
+  <img src="./Simulation%20Waveforms/In%20Between%20Messages.png" width="1000">
+</p>
 
 
 ## Next Steps
