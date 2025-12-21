@@ -10,9 +10,23 @@ The goal of this project is to create a basic FPGA parser that takes in a serial
 - Sid Rau (Computer Engineering)
 
 ## Background
+
+### FPGAs
+An Field Programmable Gate Array (FPGA) is a type of chip which acts as an effective middle ground between a Central Processing Unit (CPU) and an Application Specific Integrated Circuit (ASIC). 
+
+A CPU is the type of processing chip used widely in commercial computers, because it is the most flexible option. A CPU consists of multiple hard-coded cores, each of which can process instructions that indicate what the hardware should do next. These instructions are sourced from software, which is what makes CPUs so highly flexible and able to support such a broad range of general tasks. The price of this extreme versatility is the overhead incurred by fetching, decoding, and executing instructions slows down the performance of the CPU. For varied instruction streams without patterns, like the tasks of a commercial computer, CPUs are excellent, but they are suboptimal for applications which involve repeated, predictable or parallel instructions or where extremely low latency (the delay between the calling and completion of a computer action) is a priority.  
+
+At the other end of the spectrum, an ASIC is a chip which is engineered to perform one specific task only. Since ASICs don’t support any interpretation of instructions, they are extremely fast and offer predictable latency. The price of this performance is very costly and time-intensive development which requires extreme precision. Furthermore, the complete rigidity of an ASIC once it has been manufactured renders them virtually useless if specifications or objectives change even slightly. 
+
+The middle ground between CPUs and ASICs is FPGAs, which is a board which contains numerous unordered logic units that can be reconfigured to support different functionalities. This is unlike an ASIC, which is hardwired to perform a very specific sequence of actions, or a CPU which is hard coded with instruction processing capabilities that allow variable software to run on fixed hardware. The FPGA offers support for physically reconfiguring the hardware of the chip itself, which offers substantially more flexibility than an ASIC, which is crucial for cutting down on the massive cost of redesigning and manufacturing new ASIC circuits for even small changes in functionality. The FPGA is not quite as general purpose as a CPU, but it makes up for this by offering significantly lower and more predictable latency, much closer to that of an ASIC, which is vital in performance-critical applications. 
+
+### HFT & Market Making
+One increasingly common use case of FPGAs is in the financial sector, particularly in a field known as high frequency trading (HFT). HFT is an algorithmic trading strategy which involves automatically buying and selling large volumes of securities such as stock, bonds, futures and options at very high rates. One common HFT strategy is market making, in which a firm provides liquidity to a market by continuously buying a security at the bid price and selling at the ask price, and profiting on the difference. This process makes financial markets more efficient, as all of the market participants gain continuous access to liquid assets which can easily be traded. However, when there are multiple competing market makers, the profits go to whichever firm makes the trades first. This is because as one market maker adds more liquidity to the market, the bid-ask spread tightens, leaving less potential profit for those who are late to trade. This is because bid and ask prices reflect supply and demand, so a market maker posting lower asks and higher bids tightens the spread. This paradigm has led to an arms race for developing faster and lower latency systems in electronic markets. This is precisely where FPGAs come into play: they are a tool to process market data with very low latency, which is essential for feeding into market making algorithms, while offering dramatically more flexibility than ASICs in the case of changing strategies, new requirements for data extraction, or updated specifications for how market data is transferred.
+
+### ITCH Protocol
 ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to broadcast real-time information about orders, trades, and quotes. It provides granular, time-stamped data on every change in the order book, allowing traders and (in this case) algorithms to see market activity and react quickly. The full protocol contains 22 different message types, but only six are implemented in this project: Add Order – No MPID Attribution (type "A" message), Add Order with MPID Attribution (type "F" message). Order Executed Message (type "E" message), Order Cancel Message (type "X" message), Order Delete Message (type "D" message), and Order Replace Message (type "U" message). Messages are variable-length, and are delimited by separate start and end message flags. Each message type has its own set of fields, though some are shared across several (such as Timestamp, Tracking Number, and Order Reference Number). The full encoding schemes for each of the message types implemented in this project are shown below.
 
-### Add Order – No MPID Attribution ("A")
+**Add Order – No MPID Attribution ("A")**
 | Name                 | Offset | Length | Value   | Notes                                                                                   |
 |----------------------|--------|--------|---------|-----------------------------------------------------------------------------------------|
 | Message Type         | 0      | 1      | “A”     | Add Order – No MPID Attribution Message                                                 |
@@ -25,7 +39,7 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 | Stock                | 24     | 8      | Alpha   | Stock symbol, right-padded with spaces                                                  |
 | Price                | 32     | 4      | Price   | Display price of the new order                                                          |
 
-### Add Order with MPID Attribution ("F")
+**Add Order with MPID Attribution ("F")**
 | Name                 | Offset | Length | Value   | Notes                                                                                   |
 |----------------------|--------|--------|---------|-----------------------------------------------------------------------------------------|
 | Message Type         | 0      | 1      | “F”     | Add Order with MPID Attribution Message                                                 |
@@ -39,7 +53,7 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 | Price                | 32     | 4      | Price (4)  | Display price of the new order                                                       |
 | Attribution          | 36     | 4      | Alpha   | Nasdaq Market participant identifier associated with the entered order                  |
 
-### Order Executed Message ("E")
+**Order Executed Message ("E")**
 
 | Name                 | Offset | Length | Value   | Notes                                                                                    |
 |----------------------|--------|--------|---------|------------------------------------------------------------------------------------------|
@@ -51,7 +65,7 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 | Executed Shares      | 19     | 4      | Integer | Number of shares executed                                                                |
 | Match Number         | 23     | 8      | Integer | Nasdaq-generated day-unique Match Number for this execution                              |
 
-### Order Cancel Message ("X")
+**Order Cancel Message ("X")**
 | Name                 | Offset | Length | Value   | Notes                                                                      |
 |----------------------|--------|--------|---------|----------------------------------------------------------------------------|
 | Message Type         | 0      | 1      | “X”     | Order Cancel Message                                                       |
@@ -61,7 +75,7 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 | Order Reference No.  | 11     | 8      | Integer | The reference number of the order being canceled                           |
 | Cancelled Shares     | 19     | 4      | Integer | Shares being removed from the display size due to cancellation             |
 
-### Order Delete Message ("D")
+**Order Delete Message ("D")**
 | Name                 | Offset | Length | Value   | Notes                                                                      |
 |----------------------|--------|--------|---------|----------------------------------------------------------------------------|
 | Message Type         | 0      | 1      | “D”     | Order Delete Message                                                       |
@@ -70,7 +84,7 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 | Timestamp            | 5      | 6      | Integer | Nanoseconds since midnight                                                 |
 | Order Reference No.  | 11     | 8      | Integer | The reference number of the order being canceled                           |
 
-### Order Replace Message ("U")
+**Order Replace Message ("U")**
 | Name                 | Offset | Length | Value   | Notes                                                                      |
 |----------------------|--------|--------|---------|----------------------------------------------------------------------------|
 | Message Type         | 0      | 1      | “D”     | Order Delete Message                                                       |
