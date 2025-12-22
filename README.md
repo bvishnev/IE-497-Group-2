@@ -12,7 +12,7 @@ The goal of this project is to create a basic FPGA parser that takes in a serial
 ## Background
 
 ### FPGAs
-An Field Programmable Gate Array (FPGA) is a type of chip which acts as an effective middle ground between a Central Processing Unit (CPU) and an Application Specific Integrated Circuit (ASIC). 
+A Field Programmable Gate Array (FPGA) is a type of chip which acts as an effective middle ground between a Central Processing Unit (CPU) and an Application Specific Integrated Circuit (ASIC). 
 
 A CPU is the type of processing chip used widely in commercial computers, because it is the most flexible option. A CPU consists of multiple hard-coded cores, each of which can process instructions that indicate what the hardware should do next. These instructions are sourced from software, which is what makes CPUs so highly flexible and able to support such a broad range of general tasks. The price of this extreme versatility is the overhead incurred by fetching, decoding, and executing instructions slows down the performance of the CPU. For varied instruction streams without patterns, like the tasks of a commercial computer, CPUs are excellent, but they are suboptimal for applications which involve repeated, predictable or parallel instructions or where extremely low latency (the delay between the calling and completion of a computer action) is a priority.  
 
@@ -135,8 +135,6 @@ The design was implemented in SystemVerilog (source files included). The module 
 
 The implementation also utilizes three internal signals, `byte_idx`, `count_en`, and`message_invalid`. `byte_idx` is a 6-bit counter used to keep track of the index of the current byte, which is then used to determine which field it belongs to. `byte_idx` is incremented on every clock edge, and reset with the `start_msg` signal. `count_en` is an enable signal which indicates whether `byte_idx` should be incremented on a given clock cycle. `count_en` is `1` when the current `message` is between a start and an end delimiter and the encoding is valid, and `0` when the current `message` is outside of a start and an end delimiter or the encoding is invalid. When `count_en` is `0`, `byte_idx` is set to its maximum value of `0b111111`, which is outside of the index range of any message type and helps prevents accidentally overwriting data. `message_invalid` is a 1-bit signal that keeps track of whether any bytes so far have been invalid, which is used to make the ultimate determination of whether the overall message was valid. 
 
-The target hardware for this parser is the AMD Alveo™ U55C High Performance Compute Card, though this implementation has yet to be tested on the physical board.
-
 ## Testing 
 To test that `parser.sv` performs the desired functions as intended, we created a testbench file called `parser_tb.sv`, which executes several test cases which represent different types of valid and invalid encodings across all supported market actions. We validated the outputs of the parser by inspecting the waveform viewer and the console printout. The parser correctly writes all of the data to the corresponding registers in valid messages, and stops writing to registers immediately upon recieving an invalid byte. The parser also correctly ignores any data sent outside of the start and end delimiters, which prevents writing garbage data to registers. 
 
@@ -157,6 +155,14 @@ Waveform diagrams for select test cases are shown below. The rest can be found i
   <img src="./Simulation%20Waveforms/In%20Between%20Messages.png" width="1000">
 </p>
 
+## FPGA Platform Validation
+The target hardware for the parser is the [AMD Alveo™ U55C High Performance Compute Card](https://www.amd.com/en/products/accelerators/alveo/u55c/a-u55c-p00g-pq-g.html). However, due to time constraints, full deployment of the final design on physical hardware was not completed; however, the FPGA board, toolchain, and execution workflow were successfully validated using representative test designs. 
+
+### Environment
+We interacted with the FPGA through a remote desktop gateway called Apache Guacamole using Xilinx Runtime (XRT), a software provided by AMD to interface between Xilinx FPGA boards and host programs running on a CPU. Both the FPGA and the remote environment were provided courtesy of Professor David Lariviere and the FinTech Lab at the University of Illinois Urbana-Champaign.
+
+### Vector Doubling
+The first design that we successfully compiled and ran on the FPGA was a very basic vector doubling kernel. The source file `double_vector.cpp` is included. Note that both this design and the deserializer were implemented using C++ for Vitis High-Level Synthesis (HLS) rather than Verilog because HLS is sufficient as proof of concept for the design and integrates more easily with Vitis and XRT, though compilation of RTL kernels is also supported. 
 
 ## Next Steps
 While the implementation of the parser is largely complete, it has still yet to be tested with real market data rather than the arbritary placeholder values in the testbench. The next steps would be to build out the parser to support the full breadth of possible market actions, and then use this complete parser on a live or historical market data stream. Future work would also include implementation and testing on the physical U55C board as well as designing an order book that uses the outputs of the parser as inputs to support book-building functionalities.
