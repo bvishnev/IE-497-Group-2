@@ -156,13 +156,34 @@ Waveform diagrams for select test cases are shown below. The rest can be found i
 </p>
 
 ## FPGA Platform Validation
-The target hardware for the parser is the [AMD Alveo™ U55C High Performance Compute Card](https://www.amd.com/en/products/accelerators/alveo/u55c/a-u55c-p00g-pq-g.html). However, due to time constraints, full deployment of the final design on physical hardware was not completed; however, the FPGA board, toolchain, and execution workflow were successfully validated using representative test designs. 
+The target hardware for the parser is the [AMD Alveo™ U55C High Performance Compute Card](https://www.amd.com/en/products/accelerators/alveo/u55c/a-u55c-p00g-pq-g.html), although full deployment of the final design on physical hardware was not completed due to time constraints. However, the FPGA board, toolchain, and execution workflow were successfully validated using representative test designs. 
 
-### Environment
 We interacted with the FPGA through a remote desktop gateway called Apache Guacamole using Xilinx Runtime (XRT), a software provided by AMD to interface between Xilinx FPGA boards and host programs running on a CPU. Both the FPGA and the remote environment were provided courtesy of Professor David Lariviere and the FinTech Lab at the University of Illinois Urbana-Champaign.
 
-### Vector Doubling
-The first design that we successfully compiled and ran on the FPGA was a very basic vector doubling kernel. The source file `double_vector.cpp` is included. Note that both this design and the deserializer were implemented using C++ for Vitis High-Level Synthesis (HLS) rather than Verilog because HLS is sufficient as proof of concept for the design and integrates more easily with Vitis and XRT, though compilation of RTL kernels is also supported. 
+The design that we successfully compiled and ran on the FPGA was a basic vector doubling kernel. The source file `double_vector.cpp` is included. Note that this design was implemented using C++ for Vitis High-Level Synthesis (HLS) rather than Verilog because HLS is sufficient as proof of concept for the design and integrates more easily with Vitis and XRT, though compilation of RTL kernels is also supported. This kernel takes in an array of 1024 integers, doubles each one, and outputs the new array. The kernel is tested by a C host file called `vector_double_test.c`, which uses the OpenCL library to send a test vector where the value of each element is just its index, and compare the results produced by the FPGA to the expected results. A screenshot of the terminal output after successful execution is shown below.
+
+
+In addition, included below is a list of terminal commands needed in the compilation and execution process.    
+    
+To set up Vitis:    
+`cd /tools/Xilinx/Vitis_HLS/2024.2`    
+`source /tools/Xilinx/Vitis_HLS/2024.2/settings64.sh`    
+`cd ~`    
+`PLATFORM=/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm`   
+
+To compile the kernel:   
+`v++ -t hw --platform xilinx_u55c_gen3x16_xdma_3_202210_1 -c -k kernel_function_header -o xo_filename.xo kernel_cpp_filename.cpp`   
+`v++ -t hw --platform xilinx_u55c_gen3x16_xdma_3_202210_1 -l -o xclbin_filename.xclbin xo_filename.xo`   
+
+To set up XRT:     
+`source /opt/xilinx/xrt/setup.sh`
+
+To compile the host file:    
+`gcc -o object_filename host_filename.c -lOpenCL`    
+
+To run the host file:   
+`./object_filename xclbin_filename.xclbin`    
+
 
 ## Next Steps
 While the implementation of the parser is largely complete, it has still yet to be tested with real market data rather than the arbritary placeholder values in the testbench. The next steps would be to build out the parser to support the full breadth of possible market actions, and then use this complete parser on a live or historical market data stream. Future work would also include implementation and testing on the physical U55C board as well as designing an order book that uses the outputs of the parser as inputs to support book-building functionalities.
