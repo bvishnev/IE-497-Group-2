@@ -5,7 +5,6 @@ module parser (
     input logic       clk,
     input logic       rst,
     input logic       start_msg,  // Single bit that indicates the start of a new message
-    // input logic       end_msg,    // Single bit that indicates the end of a message
     input logic [7:0] message,    // The data of the message (byte-wise serial)
     input logic       valid,      // Single bit indicating whether the current message byte is valid
 
@@ -39,10 +38,10 @@ module parser (
 );
 
     logic [5:0] byte_idx;  // stores the index of the current byte
-    logic [5:0] msg_ctr;
     logic count_en;  // determines whether byte_idx should be incremented on the current cycle
     logic message_invalid;  // keeps track of whether an invalid byte has been encountered yet
-    logic end_msg;
+    logic end_msg; // Single bit that indicates the end of a message
+    
     always_ff @(posedge clk or posedge rst) begin
 
         if (rst) begin
