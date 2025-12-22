@@ -102,7 +102,7 @@ ITCH is a high-speed market data protocol used by stock exchanges like NASDAQ to
 Available at: https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHSpecification.pdf
 
 ## Implementation Details
-The design was implemented in SystemVerilog (source files included). The module takes in the data byte stream, start and end message flags, a valid byte flag, along with a clock and asynchronous reset signal. Each field of the message is assigned to its own output register; unused fields are assigned to zero. Finally, there is another output that is raised for one cycle at the end of a message to indicate that a valid message has been processed. The inputs and outputs are summarized in the tables below.
+The design was implemented in SystemVerilog (source files included). The module takes in the data byte stream, a start message flag, a valid byte flag, along with a clock and asynchronous reset signal. Each field of the message is assigned to its own output register; unused fields are assigned to zero. Finally, there is another output that is raised for one cycle at the end of a message to indicate that a valid message has been processed. The inputs and outputs are summarized in the tables below.
 
 ### Inputs
 
@@ -111,7 +111,6 @@ The design was implemented in SystemVerilog (source files included). The module 
 | clk       | 1           | Clock signal |
 | rst        | 1           | Reset signal |
 | start_msg  | 1           | Indicates the start of a new message |
-| end_msg    | 1           | Indicates the end of a message |
 | message    | 8           | Byte-wise serial message data |
 | valid      | 1           | Indicates whether the current message byte is valid |
 
@@ -133,7 +132,7 @@ The design was implemented in SystemVerilog (source files included). The module 
 | match_no      | 64          | E                 | Day-unique Match Number for this execution |
 | new_order_ref_no | 64       | U                    | The unique reference number assigned to the new order at the time of receipt | 
 
-The implementation also utilizes three internal signals, `byte_idx`, `count_en`, and`message_invalid`. `byte_idx` is a 6-bit counter used to keep track of the index of the current byte, which is then used to determine which field it belongs to. `byte_idx` is incremented on every clock edge, and reset with the `start_msg` signal. `count_en` is an enable signal which indicates whether `byte_idx` should be incremented on a given clock cycle. `count_en` is `1` when the current `message` is between a start and an end delimiter and the encoding is valid, and `0` when the current `message` is outside of a start and an end delimiter or the encoding is invalid. When `count_en` is `0`, `byte_idx` is set to its maximum value of `0b111111`, which is outside of the index range of any message type and helps prevents accidentally overwriting data. `message_invalid` is a 1-bit signal that keeps track of whether any bytes so far have been invalid, which is used to make the ultimate determination of whether the overall message was valid. 
+The implementation also utilizes three internal signals, `byte_idx`, `count_en`, and `message_invalid`. `byte_idx` is a 6-bit counter used to keep track of the index of the current byte, which is then used to determine which field it belongs to. `byte_idx` is incremented on every clock edge, and reset with the `start_msg` signal. `count_en` is an enable signal which indicates whether `byte_idx` should be incremented on a given clock cycle. `count_en` is `1` when the current `message` is between a start and an end delimiter and the encoding is valid, and `0` when the current `message` is outside of a start and an end delimiter or the encoding is invalid. When `count_en` is `0`, `byte_idx` is set to its maximum value of `0b111111`, which is outside of the index range of any message type and helps prevents accidentally overwriting data. `message_invalid` is a 1-bit signal that keeps track of whether any bytes so far have been invalid, which is used to make the ultimate determination of whether the overall message was valid. 
 
 ## Testing 
 To test that `parser.sv` performs the desired functions as intended, we created a testbench file called `parser_tb.sv`, which executes several test cases which represent different types of valid and invalid encodings across all supported market actions. We validated the outputs of the parser by inspecting the waveform viewer and the console printout. The parser correctly writes all of the data to the corresponding registers in valid messages, and stops writing to registers immediately upon recieving an invalid byte. The parser also correctly ignores any data sent outside of the start and end delimiters, which prevents writing garbage data to registers. 
